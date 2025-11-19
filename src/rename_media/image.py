@@ -1,5 +1,6 @@
 import dataclasses
 import datetime
+
 import exif
 import logging
 import pathlib
@@ -31,15 +32,15 @@ class Result:
     result: bool
 
 
+SUPPORTED_TYPES_MAPPING = {'jpg': 'jpg', 'jpeg': 'jpg', 'png': 'png'}
+
+
 def is_supported_file_extension(extension: str) -> bool:
-    return extension.lower() in ['jpg', 'jpeg', 'png']
+    return extension.lower() in SUPPORTED_TYPES_MAPPING
 
 
 def normalize_file_extension(extension: str) -> str:
-    extension = extension.lower()
-    if extension in ['jpg', 'jpeg']:
-        return 'jpg'
-    return extension
+    return SUPPORTED_TYPES_MAPPING[extension.lower()]
 
 
 def extract_creation_date(file_path: pathlib.Path) -> typing.Optional[datetime.datetime]:
