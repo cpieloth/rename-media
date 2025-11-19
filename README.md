@@ -1,6 +1,6 @@
 # README
 
-Bulk rename of image files based on EXIF date.
+Bulk rename of image files based on EXIF date and video files based on encoded date.
 
 ```bash
 $ rename-media image --directory /tmp/example --prefix IMG_ --suffix _example
