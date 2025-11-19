@@ -1,8 +1,8 @@
 import dataclasses
 import datetime
-import exif
 import logging
 import pathlib
+import pymediainfo
 import typing
 
 
@@ -31,7 +31,7 @@ class Result:
     result: bool
 
 
-SUPPORTED_TYPES_MAPPING = {'jpg': 'jpg', 'jpeg': 'jpg', 'png': 'png'}
+SUPPORTED_TYPES_MAPPING = {'mp4': 'mp4'}
 
 
 def is_supported_file_extension(extension: str) -> bool:
@@ -44,19 +44,30 @@ def normalize_file_extension(extension: str) -> str:
 
 def extract_creation_date(file_path: pathlib.Path) -> typing.Optional[datetime.datetime]:
     try:
-        with open(file_path, 'rb') as image_file:
-            image = exif.Image(image_file)
-    except IsADirectoryError:
+        media_info = pymediainfo.MediaInfo.parse(file_path)
+        general_track = media_info.general_tracks[0]
+        encoded_date = datetime.datetime.strptime(general_track.encoded_date, '%Y-%m-%d %H:%M:%S %Z')
+        modification_date = datetime.datetime.strptime(
+            general_track.file_last_modification_date__local, '%Y-%m-%d %H:%M:%S'
+        )
+    except OSError:
         raise
     except Exception as ex:
-        logger.debug('Could not create exif.Image for %s: %s', file_path, ex)
+        logger.debug('Could not create pymediainfo.MediaInfo or get attribute for %s: %s', file_path, ex)
         return None
 
-    if not image.has_exif:
-        logger.debug('No EXIF found: %s', file_path)
-        return None
+    # check for correct timezone
+    if encoded_date == modification_date:
+        return encoded_date
 
-    return datetime.datetime.strptime(image.datetime, '%Y:%m:%d %H:%M:%S')
+    # if only hours are different, then timezone can differ, try to correct
+    diff_seconds = abs(encoded_date - modification_date).total_seconds()
+    if diff_seconds < (24 * 60 * 60) and diff_seconds % (60 * 60) == 0:
+        logger.debug('Use modification_date: %s', file_path)
+        return modification_date
+    else:
+        logger.debug('Use encoded_date: %s', file_path)
+        return encoded_date
 
 
 def create_renamed_file_information(file_info: FileInformation, prefix: str, suffix: str) -> FileInformation:

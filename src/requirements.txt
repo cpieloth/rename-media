@@ -1,1 +1,2 @@
 exif==1.6.*
+pymediainfo==7.0.*

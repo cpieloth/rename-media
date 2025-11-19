@@ -8,6 +8,7 @@ import pathlib
 import sys
 
 import rename_media.image
+import rename_media.video
 
 
 class SubCommand(abc.ABC):
@@ -106,6 +107,33 @@ class ImageCmd(SubCommand):
         return os.EX_OK if errors == 0 else 1
 
 
+class VideoCmd(SubCommand):
+    """Rename video files by encoded date."""
+
+    @classmethod
+    def _name(cls) -> str:
+        return 'video'
+
+    @classmethod
+    def _add_arguments(cls, parser: argparse.ArgumentParser) -> None:
+        parser.add_argument('-d', '--directory', help='Directory with video files to rename.', default=os.getcwd())
+        parser.add_argument('-p', '--prefix', help='Prefix for file name.', default='')
+        parser.add_argument('-s', '--suffix', help='Suffix for file name.', default='')
+
+    @classmethod
+    def execute(cls, args) -> int:
+        errors = 0
+
+        for result in rename_media.video.rename_with_date(pathlib.Path(args.directory), args.prefix, args.suffix):
+            if result.result:
+                print(f'✅ Renamed: "{result.old_name}" to "{result.new_name}"')
+            else:
+                print(f'❌ Error: "{result.old_name}"')
+                errors += 1
+
+        return os.EX_OK if errors == 0 else 1
+
+
 def main(argv=None) -> int:
     """
     Start the Example tool.
@@ -123,6 +151,7 @@ def main(argv=None) -> int:
 
     subparser = parser.add_subparsers(title='rename-media commands', description='Valid rename-media commands.')
     ImageCmd.init_subparser(subparser)
+    VideoCmd.init_subparser(subparser)
 
     args = parser.parse_args(argv[1:])
     try:
