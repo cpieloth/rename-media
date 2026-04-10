@@ -14,7 +14,7 @@ SUPPORTED_TYPES_MAPPING = {'mp4': 'mp4'}
 
 def extract_creation_date(file_path: pathlib.Path) -> typing.Optional[datetime.datetime]:
     if not file_path.is_file():
-        raise IsADirectoryError(f"{file_path} is not a file")
+        raise IsADirectoryError(f'{file_path} is not a file')
 
     try:
         media_info = pymediainfo.MediaInfo.parse(file_path)

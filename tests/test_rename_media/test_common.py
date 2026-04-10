@@ -37,7 +37,7 @@ class CommonTestCase(unittest.TestCase):
             dir=pathlib.Path('/tmp'),
             name=file_name.split('.')[0],
             extension=file_name.split('.')[1],
-            date_created=datetime.datetime.fromisoformat('2025-11-30T10:11:00')
+            date_created=datetime.datetime.fromisoformat('2025-11-30T10:11:00'),
         )
         return file_info
 
@@ -99,10 +99,7 @@ class CommonTestCase(unittest.TestCase):
 
         # no prefix, no suffix
         file_info_expected = dataclasses.replace(
-            file_info,
-            path=pathlib.Path('/tmp/20251130T101100.media'),
-            name='20251130T101100',
-            extension='media'
+            file_info, path=pathlib.Path('/tmp/20251130T101100.media'), name='20251130T101100', extension='media'
         )
         file_info_renamed = impl.create_renamed_file_information(file_info, '', '')
         self.assertEqual(file_info_renamed, file_info_expected)
@@ -112,7 +109,7 @@ class CommonTestCase(unittest.TestCase):
             file_info,
             path=pathlib.Path('/tmp/prefix_20251130T101100.media'),
             name='prefix_20251130T101100',
-            extension='media'
+            extension='media',
         )
         file_info_renamed = impl.create_renamed_file_information(file_info, 'prefix_', '')
         self.assertEqual(file_info_renamed, file_info_expected)
@@ -122,7 +119,7 @@ class CommonTestCase(unittest.TestCase):
             file_info,
             path=pathlib.Path('/tmp/20251130T101100_suffix.media'),
             name='20251130T101100_suffix',
-            extension='media'
+            extension='media',
         )
         file_info_renamed = impl.create_renamed_file_information(file_info, '', '_suffix')
         self.assertEqual(file_info_renamed, file_info_expected)
@@ -132,7 +129,7 @@ class CommonTestCase(unittest.TestCase):
             file_info,
             path=pathlib.Path('/tmp/prefix_20251130T101100_suffix.media'),
             name='prefix_20251130T101100_suffix',
-            extension='media'
+            extension='media',
         )
         file_info_renamed = impl.create_renamed_file_information(file_info, 'prefix_', '_suffix')
         self.assertEqual(file_info_renamed, file_info_expected)
