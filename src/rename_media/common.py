@@ -4,7 +4,6 @@ import logging
 import pathlib
 import typing
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -41,7 +40,7 @@ class Result:
 @dataclasses.dataclass
 class RenameImplementation:
     supported_types_mapping: dict[str, str]
-    extract_creation_date: typing.Callable[[pathlib.Path], typing.Optional[datetime.datetime]]
+    extract_creation_date: typing.Callable[[pathlib.Path], datetime.datetime | None]
 
     def is_supported_file_extension(self, extension: str) -> bool:
         return extension.lower() in self.supported_types_mapping
@@ -93,6 +92,6 @@ class RenameImplementation:
             except FileExistsError as ferr:
                 logger.warning('Could not rename "%s": %s', file_info.path, ferr)
                 yield Result(file_info.path, file_info.path, 'File exists.')
-            except Exception as ex:
+            except Exception as ex:  # noqa: BLE001
                 logger.error('Rename error for file "%s": %s', file_info.path, ex)
                 yield Result(file_info.path, file_info.path, 'Unknown error.')

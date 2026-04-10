@@ -124,14 +124,14 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv[1:])
     try:
         # Check if a sub-command is given, otherwise print help.
-        getattr(args, 'func')
+        getattr(args, 'func')  # noqa: B009
     except AttributeError:
         parser.print_help()
         return 64  # windows compatibility aka os.EX_USAGE
 
     try:
         return args.func(args)
-    except Exception as ex:  # pylint: disable=broad-exception-caught
+    except Exception as ex:  # noqa: BLE001
         print(ex, file=sys.stderr)
         return 2
 

@@ -24,7 +24,7 @@ class VideoTestCase(unittest.TestCase):
     def test_extract_creation_date(self):
         # success
         date = rename_media.video.extract_creation_date(fixtures.FIXTURE_VIDEO_01_MP4)
-        self.assertEqual(datetime.datetime(2025, 11, 30, 10, 10, 39), date)
+        self.assertEqual(datetime.datetime(2025, 11, 30, 10, 10, 39, tzinfo=datetime.timezone.utc), date)
 
         # failed
         with self.assertRaises(IsADirectoryError) as _:

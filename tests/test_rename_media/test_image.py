@@ -24,7 +24,7 @@ class ImageTestCase(unittest.TestCase):
     def test_extract_creation_date(self):
         # success
         date = rename_media.image.extract_creation_date(fixtures.FIXTURE_IMG_01_JPG)
-        self.assertEqual(datetime.datetime.fromisoformat('2025-11-09T16:38:56'), date)
+        self.assertEqual(datetime.datetime.fromisoformat('2025-11-09T16:38:56+00:00'), date)
 
         # failed
         with self.assertRaises(IsADirectoryError) as _:

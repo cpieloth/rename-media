@@ -1,24 +1,23 @@
 import datetime
-import exif
 import logging
 import pathlib
-import typing
 
-import rename_media.common as common
+import exif
 
+from rename_media import common
 
 logger = logging.getLogger(__name__)
 
 SUPPORTED_TYPES_MAPPING = {'jpg': 'jpg', 'jpeg': 'jpg', 'png': 'png'}
 
 
-def extract_creation_date(file_path: pathlib.Path) -> typing.Optional[datetime.datetime]:
+def extract_creation_date(file_path: pathlib.Path) -> datetime.datetime | None:
     try:
         with open(file_path, 'rb') as image_file:
             image = exif.Image(image_file)
     except IsADirectoryError:
         raise
-    except Exception as ex:
+    except Exception as ex:  # noqa: BLE001
         logger.debug('Could not create exif.Image for %s: %s', file_path, ex)
         return None
 
@@ -26,7 +25,7 @@ def extract_creation_date(file_path: pathlib.Path) -> typing.Optional[datetime.d
         logger.debug('No EXIF found: %s', file_path)
         return None
 
-    return datetime.datetime.strptime(image.datetime, '%Y:%m:%d %H:%M:%S')
+    return datetime.datetime.strptime(image.datetime, '%Y:%m:%d %H:%M:%S').replace(tzinfo=datetime.UTC)
 
 
 def instance() -> common.RenameImplementation:
