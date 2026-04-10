@@ -7,6 +7,7 @@ import os
 import pathlib
 import sys
 
+import rename_media.common
 import rename_media.image
 import rename_media.video
 
@@ -40,18 +41,10 @@ class SubCommand(abc.ABC):
         return str(cls.__doc__)
 
     @classmethod
-    @abc.abstractmethod
     def _add_arguments(cls, parser: argparse.ArgumentParser) -> None:
-        """
-        Initialize the argument parser and help for the specific sub-command.
-
-        Must be implemented by a sub-command.
-
-        :param parser: A parser.
-        :type parser: argparse.ArgumentParser
-        :return: void
-        """
-        raise NotImplementedError()
+        parser.add_argument('-d', '--directory', help='Directory with files to rename.', default=os.getcwd())
+        parser.add_argument('-p', '--prefix', help='Prefix for file name.', default='')
+        parser.add_argument('-s', '--suffix', help='Suffix for file name.', default='')
 
     @classmethod
     def init_subparser(cls, subparsers: argparse._SubParsersAction) -> None:
@@ -68,16 +61,21 @@ class SubCommand(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def execute(cls, args):
-        """
-        Execute the command.
-
-        Must be implemented by a sub-command.
-
-        :param args: argparse arguments.
-        :return: 0 on success.
-        """
+    def _implementation(cls) -> rename_media.common.RenameImplementation:
         raise NotImplementedError()
+
+    @classmethod
+    def execute(cls, args):
+        errors = 0
+
+        for result in cls._implementation().rename_with_date(pathlib.Path(args.directory), args.prefix, args.suffix):
+            if not result.error_str:
+                print(f'✅ Success: Renamed "{result.old_name}" to "{result.new_name}"')
+            else:
+                print(f'❌ Error: "{result.old_name}" {result.error_str}')
+                errors += 1
+
+        return os.EX_OK if errors == 0 else 1
 
 
 class ImageCmd(SubCommand):
@@ -88,23 +86,8 @@ class ImageCmd(SubCommand):
         return 'image'
 
     @classmethod
-    def _add_arguments(cls, parser: argparse.ArgumentParser) -> None:
-        parser.add_argument('-d', '--directory', help='Directory with image files to rename.', default=os.getcwd())
-        parser.add_argument('-p', '--prefix', help='Prefix for file name.', default='')
-        parser.add_argument('-s', '--suffix', help='Suffix for file name.', default='')
-
-    @classmethod
-    def execute(cls, args) -> int:
-        errors = 0
-
-        for result in rename_media.image.rename_with_date(pathlib.Path(args.directory), args.prefix, args.suffix):
-            if result.result:
-                print(f'✅ Renamed: "{result.old_name}" to "{result.new_name}"')
-            else:
-                print(f'❌ Error: "{result.old_name}"')
-                errors += 1
-
-        return os.EX_OK if errors == 0 else 1
+    def _implementation(cls) -> rename_media.common.RenameImplementation:
+        return rename_media.image.instance()
 
 
 class VideoCmd(SubCommand):
@@ -115,23 +98,8 @@ class VideoCmd(SubCommand):
         return 'video'
 
     @classmethod
-    def _add_arguments(cls, parser: argparse.ArgumentParser) -> None:
-        parser.add_argument('-d', '--directory', help='Directory with video files to rename.', default=os.getcwd())
-        parser.add_argument('-p', '--prefix', help='Prefix for file name.', default='')
-        parser.add_argument('-s', '--suffix', help='Suffix for file name.', default='')
-
-    @classmethod
-    def execute(cls, args) -> int:
-        errors = 0
-
-        for result in rename_media.video.rename_with_date(pathlib.Path(args.directory), args.prefix, args.suffix):
-            if result.result:
-                print(f'✅ Renamed: "{result.old_name}" to "{result.new_name}"')
-            else:
-                print(f'❌ Error: "{result.old_name}"')
-                errors += 1
-
-        return os.EX_OK if errors == 0 else 1
+    def _implementation(cls) -> rename_media.common.RenameImplementation:
+        return rename_media.video.instance()
 
 
 def main(argv=None) -> int:

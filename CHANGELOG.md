@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- refactor API of `rename_media.image`, `rename_media.video` and `rename_media.common`
+
 ## [1.1.0] - 2025-11-19
 
 ### Added

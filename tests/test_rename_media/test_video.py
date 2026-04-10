@@ -5,17 +5,17 @@ import tempfile
 import unittest
 
 import rename_media.common
-import rename_media.image
+import rename_media.video
 
 import test_rename_media.fixtures as fixtures
 
 
-class ImageTestCase(unittest.TestCase):
+class VideoTestCase(unittest.TestCase):
     temp_dir: tempfile.TemporaryDirectory = None
 
     @classmethod
     def setUpClass(cls):
-        cls.temp_dir = tempfile.TemporaryDirectory(prefix='rename-media-image_tests')
+        cls.temp_dir = tempfile.TemporaryDirectory(prefix='rename-media-video_tests')
 
     @classmethod
     def tearDownClass(cls):
@@ -23,15 +23,15 @@ class ImageTestCase(unittest.TestCase):
 
     def test_extract_creation_date(self):
         # success
-        date = rename_media.image.extract_creation_date(fixtures.FIXTURE_IMG_01_JPG)
-        self.assertEqual(datetime.datetime.fromisoformat('2025-11-09T16:38:56'), date)
+        date = rename_media.video.extract_creation_date(fixtures.FIXTURE_VIDEO_01_MP4)
+        self.assertEqual(datetime.datetime(2025, 11, 30, 10, 10, 39), date)
 
         # failed
         with self.assertRaises(IsADirectoryError) as _:
-            rename_media.image.extract_creation_date(fixtures.FIXTURE_DIR)
+            rename_media.video.extract_creation_date(fixtures.FIXTURE_DIR)
 
     def test_rename_with_date_directory(self):
-        impl = rename_media.image.instance()
+        impl = rename_media.video.instance()
 
         # failed
         with self.assertRaises(NotADirectoryError) as _:
@@ -46,7 +46,7 @@ class ImageTestCase(unittest.TestCase):
         # no prefix and no suffix
         directory = fixtures.copy_fixtures(self.temp_dir, 'rename_with_date_no-prefix_no-suffix')
 
-        expected = {'20251109T163856.jpg', '20251109T163911.jpg', '20251109T163922.jpg'}
+        expected = {'20251130T101039.mp4'}
 
         for result in impl.rename_with_date(directory):
             self.assertIsNone(result.error_str)
@@ -56,7 +56,7 @@ class ImageTestCase(unittest.TestCase):
         # prefix only
         directory = fixtures.copy_fixtures(self.temp_dir, 'rename_with_date_prefix')
 
-        expected = {'prefix_20251109T163856.jpg', 'prefix_20251109T163911.jpg', 'prefix_20251109T163922.jpg'}
+        expected = {'prefix_20251130T101039.mp4'}
 
         for result in impl.rename_with_date(directory, 'prefix_'):
             self.assertIsNone(result.error_str)
@@ -66,7 +66,7 @@ class ImageTestCase(unittest.TestCase):
         # suffix only
         directory = fixtures.copy_fixtures(self.temp_dir, 'rename_with_date_suffix')
 
-        expected = {'20251109T163856_suffix.jpg', '20251109T163911_suffix.jpg', '20251109T163922_suffix.jpg'}
+        expected = {'20251130T101039_suffix.mp4'}
 
         for result in impl.rename_with_date(directory, suffix='_suffix'):
             self.assertIsNone(result.error_str)
@@ -76,11 +76,7 @@ class ImageTestCase(unittest.TestCase):
         # prefix and suffix
         directory = fixtures.copy_fixtures(self.temp_dir, 'rename_with_date_prefix_suffix')
 
-        expected = {
-            'prefix_20251109T163856_suffix.jpg',
-            'prefix_20251109T163911_suffix.jpg',
-            'prefix_20251109T163922_suffix.jpg',
-        }
+        expected = {'prefix_20251130T101039_suffix.mp4'}
 
         for result in impl.rename_with_date(directory, 'prefix_', '_suffix'):
             self.assertIsNone(result.error_str)
