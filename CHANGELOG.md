@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- refactor API of `rename_media.image`, `rename_media.video` and `rename_media.common`
+- refactor API, use `rename_media.api` for library usage
 
 ## [1.1.0] - 2025-11-19
 

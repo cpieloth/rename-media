@@ -2,14 +2,10 @@
 
 import abc
 import argparse
-import logging
 import os
 import pathlib
-import sys
 
-import rename_media.common
-import rename_media.image
-import rename_media.video
+from rename_media import api
 
 
 class SubCommand(abc.ABC):
@@ -61,14 +57,14 @@ class SubCommand(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def _implementation(cls) -> rename_media.common.RenameImplementation:
+    def _api_method(cls):
         raise NotImplementedError()
 
     @classmethod
     def execute(cls, args):
         errors = 0
 
-        for result in cls._implementation().rename_with_date(pathlib.Path(args.directory), args.prefix, args.suffix):
+        for result in cls._api_method()(pathlib.Path(args.directory), args.prefix, args.suffix):
             if not result.error_str:
                 print(f'✅ Success: Renamed "{result.old_name}" to "{result.new_name}"')
             else:
@@ -86,8 +82,8 @@ class ImageCmd(SubCommand):
         return 'image'
 
     @classmethod
-    def _implementation(cls) -> rename_media.common.RenameImplementation:
-        return rename_media.image.instance()
+    def _api_method(cls):
+        return api.rename_images
 
 
 class VideoCmd(SubCommand):
@@ -98,43 +94,10 @@ class VideoCmd(SubCommand):
         return 'video'
 
     @classmethod
-    def _implementation(cls) -> rename_media.common.RenameImplementation:
-        return rename_media.video.instance()
+    def _api_method(cls):
+        return api.rename_videos
 
 
-def main(argv=None) -> int:
-    """
-    Start the Example tool.
-
-    :return: 0 on success.
-    """
-    if not argv:
-        argv = sys.argv
-
-    # Init logging for CLI
-    logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.ERROR, stream=sys.stderr)
-
-    # Parse arguments
-    parser = argparse.ArgumentParser(prog=argv[0])
-
-    subparser = parser.add_subparsers(title='rename-media commands', description='Valid rename-media commands.')
+def init_subparser(subparser: argparse._SubParsersAction):
     ImageCmd.init_subparser(subparser)
     VideoCmd.init_subparser(subparser)
-
-    args = parser.parse_args(argv[1:])
-    try:
-        # Check if a sub-command is given, otherwise print help.
-        getattr(args, 'func')  # noqa: B009
-    except AttributeError:
-        parser.print_help()
-        return 64  # windows compatibility aka os.EX_USAGE
-
-    try:
-        return args.func(args)
-    except Exception as ex:  # noqa: BLE001
-        print(ex, file=sys.stderr)
-        return 2
-
-
-if __name__ == '__main__':
-    sys.exit(main())

@@ -1,18 +1,13 @@
-import datetime
-import os.path
+import os
 import pathlib
 import tempfile
 import unittest
 
-import rename_media.common
-import rename_media.video
-
-import test_rename_media.fixtures as fixtures
+from rename_media import api
+from test_rename_media import fixtures
 
 
-class VideoTestCase(unittest.TestCase):
-    temp_dir: tempfile.TemporaryDirectory = None
-
+class ApiVideoTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.temp_dir = tempfile.TemporaryDirectory(prefix='rename-media-video_tests')
@@ -21,34 +16,22 @@ class VideoTestCase(unittest.TestCase):
     def tearDownClass(cls):
         cls.temp_dir.cleanup()
 
-    def test_extract_creation_date(self):
-        # success
-        date = rename_media.video.extract_creation_date(fixtures.FIXTURE_VIDEO_01_MP4)
-        self.assertEqual(datetime.datetime(2025, 11, 30, 10, 10, 39, tzinfo=datetime.timezone.utc), date)
-
-        # failed
-        with self.assertRaises(IsADirectoryError) as _:
-            rename_media.video.extract_creation_date(fixtures.FIXTURE_DIR)
-
-    def test_rename_with_date_directory(self):
-        impl = rename_media.video.instance()
-
-        # failed
+    def test_rename_videos_failed(self):
         with self.assertRaises(NotADirectoryError) as _:
-            next(impl.rename_with_date(pathlib.Path(__file__)))
+            next(api.rename_videos(pathlib.Path(__file__)))
 
         directory = pathlib.Path(os.path.dirname(__file__))
-        for result in impl.rename_with_date(directory):
+        for result in api.rename_videos(directory):
             self.assertEqual(result.old_name, result.new_name)
             self.assertIsNotNone(result.error_str)
 
-        # success
+    def test_rename_videos_success(self):
         # no prefix and no suffix
         directory = fixtures.copy_fixtures(self.temp_dir, 'rename_with_date_no-prefix_no-suffix')
 
         expected = {'20251130T101039.mp4'}
 
-        for result in impl.rename_with_date(directory):
+        for result in api.rename_videos(directory):
             self.assertIsNone(result.error_str)
             expected.remove(result.new_name.name)
         self.assertEqual(0, len(expected))
@@ -58,7 +41,7 @@ class VideoTestCase(unittest.TestCase):
 
         expected = {'prefix_20251130T101039.mp4'}
 
-        for result in impl.rename_with_date(directory, 'prefix_'):
+        for result in api.rename_videos(directory, 'prefix_'):
             self.assertIsNone(result.error_str)
             expected.remove(result.new_name.name)
         self.assertEqual(0, len(expected))
@@ -68,7 +51,7 @@ class VideoTestCase(unittest.TestCase):
 
         expected = {'20251130T101039_suffix.mp4'}
 
-        for result in impl.rename_with_date(directory, suffix='_suffix'):
+        for result in api.rename_videos(directory, suffix='_suffix'):
             self.assertIsNone(result.error_str)
             expected.remove(result.new_name.name)
         self.assertEqual(0, len(expected))
@@ -78,7 +61,7 @@ class VideoTestCase(unittest.TestCase):
 
         expected = {'prefix_20251130T101039_suffix.mp4'}
 
-        for result in impl.rename_with_date(directory, 'prefix_', '_suffix'):
+        for result in api.rename_videos(directory, 'prefix_', '_suffix'):
             self.assertIsNone(result.error_str)
             expected.remove(result.new_name.name)
         self.assertEqual(0, len(expected))
